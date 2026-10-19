@@ -1,0 +1,26 @@
+# Only device-io and compliance pods may reach the device management network.
+# TODO: set the CIDR of your devices' management network.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netops-device-access
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: role, operator: In, values: ["device-io", "compliance"] }
+  policyTypes: ["Egress"]
+  egress:
+    - to: [{ ipBlock: { cidr: 10.0.0.0/24 } }]  # device mgmt network
+      ports: [{ protocol: TCP, port: 443 }]
+    - to: [{ namespaceSelector: {} }]  # Temporal, Nautobot, DNS inside the cluster
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netops-orchestration-egress
+spec:
+  podSelector:
+    matchLabels: { role: orchestration }
+  policyTypes: ["Egress"]
+  egress:
+    - to: [{ namespaceSelector: {} }]  # cluster-internal only (Temporal, DNS)

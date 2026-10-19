@@ -1,0 +1,18 @@
+# Build from the repo root:
+#   podman build -f solutions/day21/Containerfile -t netops-worker --build-arg BUILD_ID=$(git rev-parse --short HEAD) .
+FROM python:3.13-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+WORKDIR /app
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+COPY src ./src
+COPY solutions ./solutions
+RUN uv sync --frozen --no-dev
+ARG BUILD_ID=dev
+ENV BUILD_ID=$BUILD_ID PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
+# OpenShift runs containers as a random UID in group 0
+RUN chgrp -R 0 /app && chmod -R g=u /app
+USER 1001
+ENTRYPOINT ["python", "-m", "solutions.day21.workers"]
+CMD ["orchestration"]

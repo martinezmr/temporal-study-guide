@@ -3,7 +3,11 @@ import sys
 
 from temporalio.client import Client
 
-from netops_temporal.constants import ORCHESTRATION_TASK_QUEUE, TEMPORAL_ADDRESS, TEMPORAL_NAMESPACE
+from netops_temporal.constants import (
+    ORCHESTRATION_TASK_QUEUE,
+    TEMPORAL_ADDRESS,
+    TEMPORAL_NAMESPACE,
+)
 from netops_temporal.workflows.hello import HelloWorkflow
 
 

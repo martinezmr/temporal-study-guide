@@ -1,0 +1,13 @@
+# oc apply -k solutions/day30/k8s   (edit image, namespace and secrets first)
+namespace: netops-temporal
+resources:
+  - configmap.yaml
+  - secret.example.yaml
+  - deployment-orchestration.yaml
+  - deployment-device-io.yaml
+  - deployment-compliance.yaml
+  - networkpolicy.yaml
+images:
+  - name: netops-worker
+    newName: ghcr.io/YOUR_GITHUB_USER/netops-worker  # TODO
+    newTag: latest  # CI sets this to the git SHA

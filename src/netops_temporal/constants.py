@@ -13,3 +13,10 @@ DEVICE_IO_TASK_QUEUE = "netops-device-io"
 DEVICE_MODE = os.environ.get("DEVICE_MODE", "live")
 
 ORCHESTRATOR_WORKFLOW_ID = "network-compliance-orchestrator"
+
+DEVICE_HOSTS = {
+    "bos-acc-01": "172.17.0.2",
+    "bos-rtr-01": "172.17.0.4",
+    "nyc-acc-01": "172.17.0.5",
+    "nyc-rtr-01": "172.17.0.3"
+}

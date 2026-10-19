@@ -64,6 +64,15 @@ Budget 60–90 minutes a day. Weeks 1–2 move fast if you already know the basi
 | [29](days/capstone/day-29-assemble-orchestrator/README.md) | Assemble the orchestrator | all of it | local |
 | [30](days/capstone/day-30-ocp-cicd/README.md) | Containers, CI/CD, OpenShift | Worker Versioning in a pipeline | local + CI |
 
+## Solutions
+
+Worked solutions for every day live in [`solutions/`](solutions/README.md): one folder per day with a `SOLUTION.md`, runnable code, and tests. By default they run against an in-memory **mock lab** (your four device names, your topology, two built-in drifts), so you can check your work without containerlab or Nautobot. Set `DEVICE_MODE=live` to use the real lab.
+
+```bash
+uv run pytest solutions/tests -q
+uv run python -m solutions.day14.run worker   # then: uv run python -m solutions.day14.run start
+```
+
 ## Architecture you are building toward
 
 ```
@@ -87,6 +96,7 @@ lab/                  # containerlab topology, Temporal container script
 src/netops_temporal/  # the code you grow all month
   activities/  workflows/  workers/  starters/  nexus/
 tests/                # pytest + replay histories (tests/histories/)
+solutions/            # worked solutions for every day + their tests
 .devcontainer/        # GitHub Codespaces: Temporal dev server + Python
 .github/workflows/    # CI (grows into the Day 30 pipeline)
 ```

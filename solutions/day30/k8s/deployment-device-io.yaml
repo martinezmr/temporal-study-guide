@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netops-device-io
+  labels: { app: netops-worker, role: device-io }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: netops-worker, role: device-io }
+  template:
+    metadata:
+      labels: { app: netops-worker, role: device-io }
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: worker
+          image: netops-worker
+          command: ["python", "-m", "solutions.day29.workers"]
+          args: ["device-io"]
+          envFrom:
+            - configMapRef: { name: netops-worker-config }
+            - secretRef: { name: netops-worker-secrets }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: { drop: ["ALL"] }

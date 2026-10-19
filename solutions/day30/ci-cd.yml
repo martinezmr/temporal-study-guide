@@ -1,0 +1,63 @@
+# Copy to .github/workflows/ci-cd.yml when you're ready. Placeholders are marked TODO.
+name: ci-cd
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/netops-worker
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run ruff check src solutions tests
+      - run: uv run pytest -q solutions/tests tests
+
+  replay:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - name: Replay exported histories against this commit
+        run: uv run python -m solutions.day30.replay_histories tests/histories
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: replay
+    permissions: { contents: read, packages: write }
+    outputs:
+      build_id: ${{ steps.meta.outputs.build_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: echo "build_id=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: |
+          docker build -f solutions/day21/Containerfile --build-arg BUILD_ID=${{ steps.meta.outputs.build_id }} \
+            -t $IMAGE:${{ steps.meta.outputs.build_id }} .
+          docker push $IMAGE:${{ steps.meta.outputs.build_id }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: lab  # TODO: add OCP_SERVER / OCP_TOKEN secrets to this GitHub environment
+    steps:
+      - uses: actions/checkout@v4
+      - name: Roll out the new build alongside the old one
+        run: |
+          # TODO: install `oc` and log in:  oc login --server "$OCP_SERVER" --token "$OCP_TOKEN"
+          # Option A (Temporal Worker Controller): update the image on the TemporalWorkerDeployment resource
+          #   and let the controller ramp versions and retire old builds.
+          # Option B (manual, mirrors Day 19):
+          #   1. kustomize/oc apply a new Deployment named netops-orchestration-${BUILD_ID}
+          #   2. temporal worker deployment set-ramping-version --deployment-name netops --build-id ${BUILD_ID} --percentage 10
+          #   3. smoke checks, then set-current-version; delete old Deployments once drained
+          echo "deploying build ${{ needs.build.outputs.build_id }}"

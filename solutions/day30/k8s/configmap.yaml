@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netops-worker-config
+data:
+  TEMPORAL_ADDRESS: temporal-frontend.temporal.svc:7233  # TODO: your Temporal frontend (or Temporal Cloud endpoint)
+  TEMPORAL_NAMESPACE: default
+  DEVICE_MODE: live
+  NAUTOBOT_URL: http://nautobot.nautobot.svc:8080  # TODO
